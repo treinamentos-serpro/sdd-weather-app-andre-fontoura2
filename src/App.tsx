@@ -6,22 +6,23 @@ import UnitToggle from './components/UnitToggle';
 import EmptyState from './components/states/EmptyState';
 import ErrorState from './components/states/ErrorState';
 import LoadingState from './components/states/LoadingState';
-import { mockWeatherData } from './lib/mockWeatherData';
-import type { Unit } from './types/weather';
+import { useWeather } from './hooks/useWeather';
+import type { City, Unit } from './types/weather';
 
-type Status = 'idle' | 'loading' | 'success' | 'error' | 'empty';
+function cityLabel(city: City): string {
+  return [city.name, city.admin1, city.country].filter(Boolean).join(', ');
+}
 
 export default function App() {
   const [unit, setUnit] = useState<Unit>('celsius');
-  const [status] = useState<Status>('success');
+  const { state, data, cities, error, search, selectCity, retry } = useWeather();
 
   function handleSearch(query: string): void {
-    // TODO: integrar com useWeather na Entrega 2
-    console.log(query);
+    void search(query);
   }
 
   function handleRetry(): void {
-    // TODO: integrar com useWeather na Entrega 2
+    void retry();
   }
 
   return (
@@ -34,17 +35,33 @@ export default function App() {
         <SearchBar onSearch={handleSearch} />
         <UnitToggle unit={unit} onChange={setUnit} />
 
-        {status === 'loading' && <LoadingState />}
-        {status === 'error' && <ErrorState onRetry={handleRetry} />}
-        {status === 'empty' && <EmptyState />}
-        {status === 'success' && (
+        {state === 'loading' && <LoadingState />}
+        {state === 'error' && <ErrorState message={error ?? undefined} onRetry={handleRetry} />}
+        {state === 'empty' && <EmptyState />}
+        {state === 'idle' && cities.length === 0 && (
+          <p className="text-center text-slate-300">
+            Busque uma cidade para ver a previsão do tempo.
+          </p>
+        )}
+        {cities.length > 0 && (
+          <ul className="flex flex-col gap-2">
+            {cities.map((city) => (
+              <li key={city.id}>
+                <button
+                  type="button"
+                  onClick={() => selectCity(city)}
+                  className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-left font-medium text-white transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                >
+                  {cityLabel(city)}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {state === 'success' && data && (
           <>
-            <CurrentWeather
-              city={mockWeatherData.city}
-              current={mockWeatherData.current}
-              unit={unit}
-            />
-            <ForecastList days={mockWeatherData.forecast} unit={unit} />
+            <CurrentWeather city={data.city} current={data.current} unit={unit} />
+            <ForecastList days={data.forecast} unit={unit} />
           </>
         )}
       </div>
