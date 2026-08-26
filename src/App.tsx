@@ -1,79 +1,53 @@
 import { useState } from 'react';
-import type { Unit } from './types/weather';
-import { useWeather } from './hooks/useWeather';
-import SearchBar from './components/SearchBar';
-import UnitToggle from './components/UnitToggle';
 import CurrentWeather from './components/CurrentWeather';
 import ForecastList from './components/ForecastList';
-import LoadingState from './components/states/LoadingState';
-import ErrorState from './components/states/ErrorState';
+import SearchBar from './components/SearchBar';
+import UnitToggle from './components/UnitToggle';
 import EmptyState from './components/states/EmptyState';
+import ErrorState from './components/states/ErrorState';
+import LoadingState from './components/states/LoadingState';
+import { mockWeatherData } from './lib/mockWeatherData';
+import type { Unit } from './types/weather';
 
-/**
- * WeatherView — aplicação completa de previsão do tempo.
- *
- * Construída ao longo do treinamento de Spec-Driven Development com GitHub
- * Copilot, do briefing à entrega.
- */
+type Status = 'idle' | 'loading' | 'success' | 'error' | 'empty';
+
 export default function App() {
-  const { status, data, error, query, search, retry } = useWeather();
   const [unit, setUnit] = useState<Unit>('celsius');
+  const [status] = useState<Status>('success');
+
+  function handleSearch(query: string): void {
+    // TODO: integrar com useWeather na Entrega 2
+    console.log(query);
+  }
+
+  function handleRetry(): void {
+    // TODO: integrar com useWeather na Entrega 2
+  }
 
   return (
-    <div className="min-h-screen text-white">
-      <header className="border-b border-white/10">
-        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <span aria-hidden="true" className="text-2xl text-sun">
-              ☀️
-            </span>
-            <span className="text-lg font-bold">WeatherView</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <SearchBar onSearch={search} disabled={status === 'loading'} />
-            <UnitToggle unit={unit} onChange={setUnit} />
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-night-900 text-white">
+      <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
+        <header>
+          <h1 className="text-2xl font-bold sm:text-3xl">SDD Weather App</h1>
+        </header>
 
-      <main className="mx-auto max-w-5xl space-y-8 px-4 py-8">
-        {status === 'idle' && (
-          <EmptyState
-            title="Busque uma cidade para começar"
-            hint="Ex.: Seattle, Lisboa, São Paulo…"
-          />
-        )}
+        <SearchBar onSearch={handleSearch} />
+        <UnitToggle unit={unit} onChange={setUnit} />
 
         {status === 'loading' && <LoadingState />}
-
-        {status === 'empty' && (
-          <EmptyState
-            title={`Nenhuma cidade encontrada para "${query}"`}
-            hint="Verifique a grafia e tente novamente."
-          />
-        )}
-
-        {status === 'error' && error && <ErrorState message={error} onRetry={retry} />}
-
-        {status === 'success' && data && (
+        {status === 'error' && <ErrorState onRetry={handleRetry} />}
+        {status === 'empty' && <EmptyState />}
+        {status === 'success' && (
           <>
-            <CurrentWeather city={data.city} current={data.current} unit={unit} />
-            <ForecastList forecast={data.forecast} unit={unit} />
+            <CurrentWeather
+              city={mockWeatherData.city}
+              current={mockWeatherData.current}
+              unit={unit}
+            />
+            <ForecastList days={mockWeatherData.forecast} unit={unit} />
           </>
         )}
-      </main>
-
-      <footer className="py-8 text-center text-sm text-white/40">
-        Dados por{' '}
-        <a
-          href="https://open-meteo.com/"
-          target="_blank"
-          rel="noreferrer"
-          className="text-accent-400 hover:underline"
-        >
-          Open-Meteo
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }

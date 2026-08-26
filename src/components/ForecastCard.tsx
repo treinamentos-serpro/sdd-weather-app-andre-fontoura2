@@ -1,28 +1,29 @@
 import type { ForecastDay, Unit } from '../types/weather';
 import { formatTemperature } from '../lib/temperature';
-import { getWeatherIcon, getWeatherLabel } from '../lib/weatherCodes';
-import { getDayLabel, getShortDate } from '../lib/format';
+import { getWeatherCodeInfo } from '../lib/weatherCodes';
+import { formatDayLabel } from '../lib/format';
 
 interface ForecastCardProps {
   day: ForecastDay;
-  index: number;
   unit: Unit;
 }
 
-/** Card de um dia da previsão. */
-export default function ForecastCard({ day, index, unit }: ForecastCardProps) {
+export default function ForecastCard(props: ForecastCardProps) {
+  const { day, unit } = props;
+  const { label, icon } = getWeatherCodeInfo(day.weatherCode);
+
   return (
-    <li className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-md">
-      <p className="font-semibold">{getDayLabel(day.date, index)}</p>
-      <p className="text-xs text-white/50">{getShortDate(day.date)}</p>
-      <span aria-hidden="true" className="text-3xl" title={getWeatherLabel(day.weatherCode)}>
-        {getWeatherIcon(day.weatherCode)}
+    <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 text-center text-white backdrop-blur-md">
+      <span className="text-sm font-medium text-white/80">{formatDayLabel(day.date)}</span>
+      <span className="text-3xl" aria-hidden="true">
+        {icon}
       </span>
-      <p className="text-sm">
-        <span className="font-semibold">{formatTemperature(day.max, unit)}</span>{' '}
-        <span className="text-white/50">{formatTemperature(day.min, unit)}</span>
-      </p>
-      <p className="text-xs text-accent-400">💧 {day.precipitationProbability}%</p>
-    </li>
+      <span className="text-xs text-white/70">{label}</span>
+      <div className="flex items-baseline gap-2">
+        <span className="text-lg font-semibold">{formatTemperature(day.max, unit)}</span>
+        <span className="text-sm text-white/60">{formatTemperature(day.min, unit)}</span>
+      </div>
+      <span className="text-xs text-sky-300">{day.precipitationProbability}%</span>
+    </div>
   );
 }

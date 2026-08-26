@@ -1,76 +1,65 @@
-import type { CurrentWeather as CurrentWeatherType, City, Unit } from '../types/weather';
+import type React from 'react';
+import type { City, CurrentWeather as CurrentWeatherData, Unit } from '../types/weather';
 import { formatTemperature } from '../lib/temperature';
-import { getWeatherIcon, getWeatherLabel } from '../lib/weatherCodes';
+import { getWeatherCodeInfo } from '../lib/weatherCodes';
 
 interface CurrentWeatherProps {
   city: City;
-  current: CurrentWeatherType;
+  current: CurrentWeatherData;
   unit: Unit;
 }
 
 interface MetricProps {
-  icon: string;
   label: string;
-  value: string;
+  value: number | undefined | null;
+  suffix: string;
 }
 
-function Metric({ icon, label, value }: MetricProps) {
+function formatMetricValue(value: number | undefined | null): string {
+  return value === undefined || value === null ? '—' : `${value}`;
+}
+
+function Metric({ label, value, suffix }: MetricProps): React.JSX.Element {
+  const displayValue = formatMetricValue(value);
+
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-md">
-      <span aria-hidden="true" className="text-xl">
-        {icon}
+    <div className="flex flex-col items-center gap-1 rounded-xl bg-white/10 p-3 text-center backdrop-blur-sm">
+      <span className="text-xs uppercase tracking-wide text-white/70">{label}</span>
+      <span className="text-lg font-semibold text-white">
+        {displayValue === '—' ? displayValue : `${displayValue}${suffix}`}
       </span>
-      <div>
-        <p className="text-xs text-white/50">{label}</p>
-        <p className="font-semibold">{value}</p>
-      </div>
     </div>
   );
 }
 
-/** Seção "hero" com as condições atuais da cidade selecionada. */
-export default function CurrentWeather({ city, current, unit }: CurrentWeatherProps) {
-  const location = [city.admin1, city.country].filter(Boolean).join(', ');
+export default function CurrentWeather({ city, current, unit }: CurrentWeatherProps): React.JSX.Element {
+  const { label, icon } = getWeatherCodeInfo(current.weatherCode);
 
   return (
     <section
       aria-label="Clima atual"
-      className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md shadow-glass md:p-8"
+      className="rounded-2xl border border-white/20 bg-white/10 p-6 shadow-lg backdrop-blur-md"
     >
-      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold md:text-3xl">{city.name}</h2>
-          {location && <p className="text-white/60">{location}</p>}
-
-          <div className="mt-6 flex items-center gap-4">
-            <span aria-hidden="true" className="text-6xl">
-              {getWeatherIcon(current.weatherCode)}
-            </span>
-            <span className="text-6xl font-light md:text-7xl">
-              {formatTemperature(current.temperature, unit)}
-            </span>
-          </div>
-          <p className="mt-2 text-white/70">{getWeatherLabel(current.weatherCode)}</p>
+      <header className="flex flex-col items-center gap-2 text-center">
+        <h2 className="text-xl font-medium text-white/90">
+          {city.name}, {city.country}
+        </h2>
+        <div className="flex items-center gap-3">
+          <span className="text-5xl" aria-hidden="true">
+            {icon}
+          </span>
+          <span className="text-6xl font-bold text-white">
+            {formatTemperature(current.temperature, unit)}
+          </span>
         </div>
+        <p className="text-white/80">{label}</p>
+      </header>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Metric icon="💧" label="Umidade" value={`${Math.round(current.humidity)}%`} />
-          <Metric
-            icon="💨"
-            label="Vento"
-            value={`${Math.round(current.windSpeed)} km/h`}
-          />
-          <Metric
-            icon="🌧️"
-            label="Precipitação"
-            value={`${current.precipitation} mm`}
-          />
-          <Metric
-            icon="📊"
-            label="Pressão"
-            value={`${Math.round(current.pressure)} hPa`}
-          />
-        </div>
+      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <Metric label="Umidade" value={current.humidity} suffix="%" />
+        <Metric label="Vento" value={current.windSpeed} suffix=" km/h" />
+        <Metric label="Pressão" value={current.pressure} suffix=" hPa" />
+        <Metric label="Precipitação" value={current.precipitation} suffix=" mm" />
       </div>
     </section>
   );

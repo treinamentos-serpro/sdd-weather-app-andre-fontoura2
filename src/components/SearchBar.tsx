@@ -1,47 +1,45 @@
 import { useState, type FormEvent } from 'react';
 
-interface SearchBarProps {
-  onSearch: (city: string) => void;
-  disabled?: boolean;
+export interface SearchBarProps {
+  onSearch: (query: string) => void;
 }
 
-/** Barra de busca de cidade. Bloqueia submit com input vazio. */
-export default function SearchBar({ onSearch, disabled }: SearchBarProps) {
-  const [value, setValue] = useState('');
+export default function SearchBar({ onSearch }: SearchBarProps) {
+  const [query, setQuery] = useState('');
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    const trimmed = value.trim();
-    if (!trimmed) return;
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmed = query.trim();
+    if (!trimmed) {
+      return;
+    }
     onSearch(trimmed);
   }
 
   return (
-    <form role="search" onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-md focus-within:border-accent-500">
-        <span aria-hidden="true" className="text-white/50">
-          🔍
-        </span>
-        <label htmlFor="city-search" className="sr-only">
-          Buscar cidade
-        </label>
-        <input
-          id="city-search"
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="Buscar cidade…"
-          autoComplete="off"
-          className="flex-1 bg-transparent text-white placeholder-white/40 outline-none"
-        />
-        <button
-          type="submit"
-          disabled={disabled || !value.trim()}
-          className="rounded-lg bg-accent-500 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Buscar
-        </button>
-      </div>
+    <form
+      role="search"
+      onSubmit={handleSubmit}
+      className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 font-sans backdrop-blur-md"
+    >
+      <label htmlFor="city-search" className="sr-only">
+        Buscar cidade
+      </label>
+      <input
+        id="city-search"
+        type="text"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder="Buscar cidade..."
+        className="w-full rounded-xl border border-transparent bg-slate-900/60 px-4 py-2 text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-400"
+      />
+      <button
+        type="submit"
+        aria-label="Buscar"
+        className="shrink-0 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-slate-100 transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-sky-400"
+      >
+        🔍
+      </button>
     </form>
   );
 }
